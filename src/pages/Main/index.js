@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';// useState = Hooks
+import React, {useState, useCallback, useEffect} from 'react';// useState = Hooks
 
 import { FaGithub, FaPlus, FaSpinner, FaBars, FaTrash } from 'react-icons/fa'; // necessário instalar extensão react-icons
 import {Container, Form, SubmitButton, List, DeleteButton} from './styles';
@@ -9,7 +9,23 @@ export default function Main(){
   const [newRepo,setNewRepo] = useState('');
   const [repositorios,setRepositorios] = useState([]);
   const [loading, setLoading] = useState(false); // para ter loding na tela quando uma requisição tiver sendo feita
+  const [alert, setAlert] = useState(null);
 
+// Buscar [] em branco pra ele exceutar sempre que  a pagina for atualizada
+  useEffect(()=>{
+  const repoStorage = localStorage.getItem('repos');
+
+  if(repoStorage){
+    setRepositorios(JSON.parse(repoStorage));
+  }
+
+}, []);
+
+  // Salvar alterações sempre que tem uma mudança no repositório (escuta)
+  useEffect(()=>{
+    localStorage.setItem('repos', JSON.stringify(repositorios));
+  }, [repositorios]);
+  
   //useCallback para que quando newRepo ou repositorios for atualizado a função será chamada
   const handleSubmit = useCallback((e)=>{
     e.preventDefault();
@@ -17,10 +33,19 @@ export default function Main(){
     async function submit(){ 
 
       setLoading(true);
+      setAlert(null);
       try{
-
+        if(newRepo === ''){
+          throw new Error('Você precisa indicar um repositório')
+        }
       //para teste: facebook/react
       const response = await api.get(`repos/${newRepo}`);
+
+      const hasRepo = repositorios.find(repo=> repo.name === newRepo);
+
+      if(hasRepo){
+          throw new Error('Repositório Duplicado');
+      }
   
       const data = {
         name: response.data.full_name,
@@ -29,6 +54,7 @@ export default function Main(){
       setRepositorios([...repositorios, data]);
       setNewRepo('');
     }catch(error){
+      setAlert(true);
       console.log(error);
     }finally{
       setLoading(false);
@@ -42,6 +68,7 @@ export default function Main(){
   function handleInputChange(e){
     
     setNewRepo(e.target.value);
+    setAlert(null);
   }
 
   
@@ -58,7 +85,7 @@ export default function Main(){
       Meus Repositorios
     </h1>
 
-    <Form onSubmit={handleSubmit}>
+    <Form onSubmit={handleSubmit} error={alert}>
       <input type="text" 
       placeholder="Adicionar Repositorios"
       value={newRepo}
