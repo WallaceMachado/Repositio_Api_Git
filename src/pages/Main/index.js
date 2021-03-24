@@ -2,7 +2,7 @@ import React, {useState, useCallback, useEffect} from 'react';// useState = Hook
 
 import { FaGithub, FaPlus, FaSpinner, FaBars, FaTrash } from 'react-icons/fa'; // necessário instalar extensão react-icons
 import {Container, Form, SubmitButton, List, DeleteButton} from './styles';
-
+import {Link} from 'react-router-dom';
 import api from '../../services/api';
 
 export default function Main(){
@@ -111,9 +111,9 @@ export default function Main(){
              </DeleteButton>  
              {repo.name}
              </span>
-             <a href="">
+             <Link to={`/repositorio/${encodeURIComponent(repo.name)}`}> {/*encodeURIComponent é para que a variavel seja passada como parametro da url  */}
                <FaBars size={20}/>
-             </a>
+             </Link>
            </li>
          ))} 
       </List>
